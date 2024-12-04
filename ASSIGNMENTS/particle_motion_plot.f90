@@ -1,10 +1,11 @@
 program particle_motion
-  use simulation_module, only: initialize_simulation, run_simulation, write_results, generate_plot
+  use simulation_module, only: initialize_simulation, compute_forces, run_simulation, write_results, generate_plot
   implicit none
 
   ! Variables
   real :: dt, T, z0, v0, k, c, m, g, epsilon
   real, allocatable :: z(:), v(:), time_array(:)
+  real, allocatable :: F_g_array(:), F_contact_array(:), F_net_array(:)
   integer :: n_points
 
   ! Initialize parameters
@@ -23,20 +24,22 @@ program particle_motion
 
   ! Allocate arrays
   allocate(z(n_points), v(n_points), time_array(n_points))
+  allocate(F_g_array(n_points), F_contact_array(n_points), F_net_array(n_points))
+
 
   ! Initialize arrays
   call initialize_simulation(z, v, time_array, z0, v0, dt, n_points)
 
   ! Perform the simulation
-  call run_simulation(z, v, time_array, m, g, k, c, dt, epsilon, n_points)
+  call run_simulation(z, v, time_array, F_g_array, F_contact_array, F_net_array, m, g, k, c, dt, epsilon, n_points)
 
   ! Output results to a file
-  call write_results(z, v, time_array, n_points)
+  call write_results(z, v, time_array, F_g_array, F_contact_array, F_net_array, n_points)
 
   ! Generate plot using Gnuplot
   call generate_plot()
 
   ! Deallocate arrays
-  deallocate(z, v, time_array)
+  deallocate(z, v, time_array, F_g_array, F_contact_array, F_net_array)
 end program particle_motion
 

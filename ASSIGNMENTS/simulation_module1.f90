@@ -39,9 +39,10 @@ module simulation_module
   end subroutine compute_forces
 
   ! Subroutine to run the simulation
-  subroutine run_simulation(z, v, time_array, m, g, k, c, dt, epsilon, n_points)
+  subroutine run_simulation(z, v, time_array, F_g_array, F_contact_array, F_net_array, m, g, k, c, dt, epsilon, n_points)
     implicit none
     real, intent(inout) :: z(:), v(:), time_array(:)
+    real, intent(out) :: F_g_array(:), F_contact_array(:), F_net_array(:)
     real, intent(in) :: m, g, k, c, dt, epsilon
     integer, intent(in) :: n_points
     real :: F_g, F_contact, F_net, a
@@ -50,6 +51,12 @@ module simulation_module
     do i = 2, n_points
       ! Compute forces
       call compute_forces(z(i - 1), v(i - 1), m, g, k, c, F_g, F_contact, F_net)
+
+      ! Store forces in arrays
+      F_g_array(i) = F_g
+      F_contact_array(i) = F_contact
+      F_net_array(i) = F_net
+
 
       ! Compute acceleration
       a = F_net / m
@@ -62,21 +69,28 @@ module simulation_module
       if (abs(v(i)) < epsilon .and. z(i) == 0.0) then
         z(i:) = 0.0
         v(i:) = 0.0
+        F_g_array(i:) = 0.0
+        F_contact_array(i:) = 0.0
+        F_net_array(i:) = 0.0
         exit
       end if
     end do
   end subroutine run_simulation
 
   ! Subroutine to write results to a file
-  subroutine write_results(z, v, time_array, n_points)
+  ! subroutine write_results(z, v, time_array, n_points)
+  subroutine write_results(z, v, time_array, F_g_array, F_contact_array, F_net_array, n_points)
     implicit none
     real, intent(in) :: z(:), v(:), time_array(:)
+    real, intent(in) :: F_g_array(:), F_contact_array(:), F_net_array(:)
     integer, intent(in) :: n_points
     integer :: i
     open(unit=10, file="results.txt", status="replace")
-    write(10, *) "Time (s)", "Height (m)", "Velocity (m/s)"
+    ! write(10, *) "Time (s)", "Height (m)", "Velocity (m/s)", "Gravitational_Force", "Contact_Force", "Net_Force"
+    write(10, '(A)') "Time (s), Height (m), Velocity (m/s), Gravitational Force (N), Contact Force (N), Net Force (N)"
     do i = 1, n_points
-      write(10, *) time_array(i), z(i), v(i)
+      ! write(10, *) time_array(i), z(i), v(i)
+      write(10, '(F10.3, F10.3, F10.3, F10.3, F10.3, F10.3)') time_array(i), z(i), v(i), F_g_array(i), F_contact_array(i), F_net_array(i)
     end do
     close(10)
   end subroutine write_results
