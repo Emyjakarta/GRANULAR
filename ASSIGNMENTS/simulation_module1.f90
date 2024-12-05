@@ -239,93 +239,93 @@ module simulation_module
     call execute_command_line("gnuplot plot_commands.gp")
 end subroutine generate_plot
 
-!  ! Subroutine to initialize the 2D simulation
-! subroutine initialize_simulation_2D(x, y, vx, vy, time_array, x0, y0, vx0, vy0, dt, n_points)
-!   implicit none
-!   real, intent(out) :: x(:), y(:), vx(:), vy(:), time_array(:)
-!   real, intent(in) :: x0, y0, vx0, vy0, dt
-!   integer, intent(in) :: n_points
-!   integer :: i
+ ! Subroutine to initialize the 2D simulation
+subroutine initialize_simulation_2D(x, y, vx, vy, time_array, x0, y0, vx0, vy0, dt, n_points)
+  implicit none
+  real, intent(out) :: x(:), y(:), vx(:), vy(:), time_array(:)
+  real, intent(in) :: x0, y0, vx0, vy0, dt
+  integer, intent(in) :: n_points
+  integer :: i
 
-!   ! Initialize arrays
-!   x(1) = x0
-!   y(1) = y0
-!   vx(1) = vx0
-!   vy(1) = vy0
-!   do i = 1, n_points
-!     time_array(i) = (i - 1) * dt
-!   end do
-! end subroutine initialize_simulation_2D
+  ! Initialize arrays
+  x(1) = x0
+  y(1) = y0
+  vx(1) = vx0
+  vy(1) = vy0
+  do i = 1, n_points
+    time_array(i) = (i - 1) * dt
+  end do
+end subroutine initialize_simulation_2D
 
-! ! Subroutine to compute the forces in 2D
-! subroutine compute_forces_2D(x, y, vx, vy, m, g, k, c, mu, Fx, Fy, include_damping)
-!   implicit none
-!   real, intent(in) :: x, y, vx, vy, m, g, k, c, mu
-!   logical, intent(in), optional :: include_damping
-!   real, intent(out) :: Fx, Fy
+! Subroutine to compute the forces in 2D
+subroutine compute_forces_2D(x, y, vx, vy, m, g, k, c, mu, Fx, Fy, include_damping)
+  implicit none
+  real, intent(in) :: x, y, vx, vy, m, g, k, c, mu
+  logical, intent(in), optional :: include_damping
+  real, intent(out) :: Fx, Fy
 
-!   real :: delta, Fn, Ft
+  real :: delta, Fn, Ft
 
-!   ! Normal force (contact with wall at y=0)
-!   if (y <= 0.0) then
-!     delta = -y
-!     Fn = k * delta
-!     if (present(include_damping) .and. include_damping) then
-!       Fn = Fn - c * vy
-!     end if
-!     ! Friction force
-!     Ft = mu * Fn
-!     Fx = -Ft * sign(1.0, vx)  ! Friction opposes motion in x
-!     Fy = Fn  ! Normal force
-!   else
-!     Fx = 0.0
-!     Fy = -m * g  ! Gravity acts in y direction
-!   end if
-! end subroutine compute_forces_2D
+  ! Normal force (contact with wall at y=0)
+  if (y <= 0.0) then
+    delta = -y
+    Fn = k * delta
+    if (present(include_damping) .and. include_damping) then
+      Fn = Fn - c * vy
+    end if
+    ! Friction force
+    Ft = mu * Fn
+    Fx = -Ft * sign(1.0, vx)  ! Friction opposes motion in x
+    Fy = Fn  ! Normal force
+  else
+    Fx = 0.0
+    Fy = -m * g  ! Gravity acts in y direction
+  end if
+end subroutine compute_forces_2D
 
-! ! Subroutine to run the 2D simulation
-! subroutine run_simulation_2D(x, y, vx, vy, time_array, Fx_array, Fy_array, m, g, k, c, mu, dt, epsilon, n_points, include_damping)
-!   implicit none
-!   real, intent(inout) :: x(:), y(:), vx(:), vy(:), time_array(:)
-!   real, intent(out) :: Fx_array(:), Fy_array(:)
-!   real, intent(in) :: m, g, k, c, mu, dt, epsilon
-!   logical, intent(in) :: include_damping
-!   integer, intent(in) :: n_points
-!   real :: Fx, Fy, ax, ay
-!   integer :: i
+! Subroutine to run the 2D simulation
+subroutine run_simulation_2D(x, y, vx, vy, time_array, Fx_array, Fy_array, m, g, k, c, mu, dt, epsilon, n_points, include_damping)
+  implicit none
+  real, intent(inout) :: x(:), y(:), vx(:), vy(:), time_array(:)
+  real, intent(out) :: Fx_array(:), Fy_array(:)
+  real, intent(in) :: m, g, k, c, mu, dt, epsilon
+  logical, intent(in) :: include_damping
+  integer, intent(in) :: n_points
+  real :: Fx, Fy, ax, ay
+  integer :: i
 
-!   do i = 2, n_points
-!     ! Compute forces
-!     call compute_forces_2D(x(i-1), y(i-1), vx(i-1), vy(i-1), m, g, k, c, mu, Fx, Fy, include_damping)
+  do i = 2, n_points
+    ! Compute forces
+    call compute_forces_2D(x(i-1), y(i-1), vx(i-1), vy(i-1), m, g, k, c, mu, Fx, Fy, include_damping)
 
-!     ! Store forces
-!     Fx_array(i) = Fx
-!     Fy_array(i) = Fy
+    ! Store forces
+    Fx_array(i) = Fx
+    Fy_array(i) = Fy
 
-!     ! Compute accelerations
-!     ax = Fx / m
-!     ay = Fy / m
+    ! Compute accelerations
+    ax = Fx / m
+    ay = Fy / m
 
-!     ! Update velocities
-!     vx(i) = vx(i-1) + ax * dt
-!     vy(i) = vy(i-1) + ay * dt
+    ! Update velocities
+    vx(i) = vx(i-1) + ax * dt
+    vy(i) = vy(i-1) + ay * dt
 
-!     ! Update positions
-!     x(i) = x(i-1) + vx(i) * dt
-!     y(i) = y(i-1) + vy(i) * dt
+    ! Update positions
+    x(i) = x(i-1) + vx(i) * dt
+    y(i) = y(i-1) + vy(i) * dt
 
-!     ! Stop if velocity and height are small
-!     if (abs(vy(i)) < epsilon .and. y(i) == 0.0) then
-!       x(i:) = x(i-1)
-!       y(i:) = 0.0
-!       vx(i:) = 0.0
-!       vy(i:) = 0.0
-!       Fx_array(i:) = 0.0
-!       Fy_array(i:) = 0.0
-!       exit
-!     end if
-!   end do
-! end subroutine run_simulation_2D
+    ! Stop if velocity and height are small
+    if (abs(vy(i)) < epsilon .and. y(i) == 0.0) then
+      x(i:) = x(i-1)
+      y(i:) = 0.0
+      vx(i:) = 0.0
+      vy(i:) = 0.0
+      Fx_array(i:) = 0.0
+      Fy_array(i:) = 0.0
+      exit
+    end if
+  end do
+end subroutine run_simulation_2D
 
 
 end module simulation_module
