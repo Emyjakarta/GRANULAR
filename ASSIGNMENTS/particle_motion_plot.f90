@@ -7,11 +7,12 @@ program particle_motion
   real, allocatable :: z(:), v(:), time_array(:)
   real, allocatable :: F_g_array(:), F_contact_array(:), F_net_array(:)
   integer :: n_points
+  logical :: include_damping
 
   ! Initialize parameters
   m = 1.0        ! Mass (kg)
   g = 9.81       ! Gravitational acceleration (m/s^2)
-  z0 = 10.0      ! Initial height (m)
+  z0 = 1.0      ! Initial height (m)
   v0 = 0.0       ! Initial velocity (m/s)
   k = 1000.0     ! Spring constant (N/m)
   c = 10.0       ! Damping coefficient (Ns/m)
@@ -27,17 +28,32 @@ program particle_motion
   allocate(F_g_array(n_points), F_contact_array(n_points), F_net_array(n_points))
 
 
-  ! Initialize arrays
+  ! ! Initialize arrays
+  ! call initialize_simulation(z, v, time_array, z0, v0, dt, n_points)
+
+  ! ! Perform the simulation
+  ! call run_simulation(z, v, time_array, F_g_array, F_contact_array, F_net_array, m, g, k, c, dt, epsilon, n_points)
+
+  ! ! Output results to a file
+  ! call write_results(z, v, time_array, F_g_array, F_contact_array, F_net_array, n_points)
+
+  ! ! Generate plot using Gnuplot
+  ! call generate_plot()
+
+  ! --- Case 1: Elastic Only ---
+  include_damping = .false.  ! No damping
   call initialize_simulation(z, v, time_array, z0, v0, dt, n_points)
+  call run_simulation(z, v, time_array, F_g_array, F_contact_array, F_net_array, m, g, k, c, dt, epsilon, n_points, include_damping)
+  call write_results(z, v, time_array, F_g_array, F_contact_array, F_net_array, n_points, "results_elastic.txt")
+  call generate_plot()  ! Save plot for elastic case
 
-  ! Perform the simulation
-  call run_simulation(z, v, time_array, F_g_array, F_contact_array, F_net_array, m, g, k, c, dt, epsilon, n_points)
+  ! --- Case 2: Elastic + Damping ---
+  include_damping = .true.  ! Include damping
+  call initialize_simulation(z, v, time_array, z0, v0, dt, n_points)
+  call run_simulation(z, v, time_array, F_g_array, F_contact_array, F_net_array, m, g, k, c, dt, epsilon, n_points, include_damping)
+  call write_results(z, v, time_array, F_g_array, F_contact_array, F_net_array, n_points, "results_damping.txt")
+  call generate_plot()  ! Save plot for elastic + damping case
 
-  ! Output results to a file
-  call write_results(z, v, time_array, F_g_array, F_contact_array, F_net_array, n_points)
-
-  ! Generate plot using Gnuplot
-  call generate_plot()
 
   ! Deallocate arrays
   deallocate(z, v, time_array, F_g_array, F_contact_array, F_net_array)
