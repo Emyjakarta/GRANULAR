@@ -133,15 +133,15 @@ module simulation_module
     write(20, *) "set output 'height_vs_time_Elastic_And_Damping.png'"
     write(20, *) "plot 'results_damping.txt' using 1:2 with lines title 'Height (z)'"
 
-    ! Save the plot as JPEG
-    write(20, *) "set terminal jpeg size 800,600"
-    write(20, *) "set output 'height_vs_time_Elastic_And_Damping.jpeg'"
-    write(20, *) "plot 'results_damping.txt' using 1:2 with lines title 'Height (z)'"
+    ! ! Save the plot as JPEG
+    ! write(20, *) "set terminal jpeg size 800,600"
+    ! write(20, *) "set output 'height_vs_time_Elastic_And_Damping.jpeg'"
+    ! write(20, *) "plot 'results_damping.txt' using 1:2 with lines title 'Height (z)'"
 
-    ! Save the plot as GIF
-    write(20, *) "set terminal gif size 800,600"
-    write(20, *) "set output 'height_vs_time_Elastic_And_Damping.gif'"
-    write(20, *) "plot 'results_damping.txt' using 1:2 with lines title 'Height (z)'"
+    ! ! Save the plot as GIF
+    ! write(20, *) "set terminal gif size 800,600"
+    ! write(20, *) "set output 'height_vs_time_Elastic_And_Damping.gif'"
+    ! write(20, *) "plot 'results_damping.txt' using 1:2 with lines title 'Height (z)'"
 
     ! ! Display the plot in Gnuplot (optional)
     ! write(20, *) "set terminal qt"
@@ -160,15 +160,77 @@ module simulation_module
     write(20, *) "set output 'height_vs_time_Elastic.png'"
     write(20, *) "plot 'results_elastic.txt' using 1:2 with lines title 'Height (z)'"
 
-    ! Save the plot as JPEG
-    write(20, *) "set terminal jpeg size 800,600"
-    write(20, *) "set output 'height_vs_time_Elastic.jpeg'"
-    write(20, *) "plot 'results_elastic.txt' using 1:2 with lines title 'Height (z)'"
+    ! ! Save the plot as JPEG
+    ! write(20, *) "set terminal jpeg size 800,600"
+    ! write(20, *) "set output 'height_vs_time_Elastic.jpeg'"
+    ! write(20, *) "plot 'results_elastic.txt' using 1:2 with lines title 'Height (z)'"
 
-    ! Save the plot as GIF
-    write(20, *) "set terminal gif size 800,600"
-    write(20, *) "set output 'height_vs_time_Elastic.gif'"
-    write(20, *) "plot 'results_elastic.txt' using 1:2 with lines title 'Height (z)'"
+    ! ! Save the plot as GIF
+    ! write(20, *) "set terminal gif size 800,600"
+    ! write(20, *) "set output 'height_vs_time_Elastic.gif'"
+    ! write(20, *) "plot 'results_elastic.txt' using 1:2 with lines title 'Height (z)'"
+
+    ! For Elastic and Damping Case (Net Force)
+    ! Set up Gnuplot for plotting and saving the output
+    write(20, *) "set title 'Particle Motion: F_net vs. Height'"
+    write(20, *) "set xlabel 'Height (m)'"
+    write(20, *) "set ylabel 'F_net (N)'"
+    write(20, *) "set grid"
+
+    ! Save the plot as PNG
+    write(20, *) "set terminal png size 800,600"
+    write(20, *) "set output 'F_net_vs_Height.png'"
+    write(20, *) "plot 'results_damping_F_net.txt' using 2:6 with lines title 'Net_Force (F_net)'"
+
+    ! For Elastic and Damping Case (Contact Force)
+    ! Set up Gnuplot for plotting and saving the output
+    write(20, *) "set title 'Particle Motion: F_contact vs. Height'"
+    write(20, *) "set xlabel 'Height (m)'"
+    write(20, *) "set ylabel 'F_contact (N)'"
+    write(20, *) "set grid"
+
+    ! Save the plot as PNG
+    write(20, *) "set terminal png size 800,600"
+    write(20, *) "set output 'F_contact_vs_Height.png'"
+    write(20, *) "plot 'results_damping_F_contact.txt' using 2:5 with lines title 'Contact_Force (F_contact)'"
+
+    ! For Elastic and Damping Case (Gravitational Force)
+    ! Set up Gnuplot for plotting and saving the output
+    write(20, *) "set title 'Particle Motion: F_g vs. Height'"
+    write(20, *) "set xlabel 'Height (m)'"
+    write(20, *) "set ylabel 'F_g (N)'"
+    write(20, *) "set grid"
+
+    ! Save the plot as PNG
+    write(20, *) "set terminal png size 800,600"
+    write(20, *) "set output 'F_g_vs_Height.png'"
+    write(20, *) "plot 'results_damping_F_g.txt' using 2:4 with lines title 'Gravitational_Force (F_g)'"
+
+    ! For Elastic and Damping Case (Net Force vs. Time)
+    ! Set up Gnuplot for plotting and saving the output
+    write(20, *) "set title 'Particle Motion: F_net vs. Time'"
+    write(20, *) "set xlabel 'Time (s)'"
+    write(20, *) "set ylabel 'F_net (N)'"
+    write(20, *) "set grid"
+
+    ! Save the plot as PNG
+    write(20, *) "set terminal png size 800,600"
+    write(20, *) "set output 'F_net_vs_Time.png'"
+    write(20, *) "plot 'results_damping_F_net_vs_Time.txt' using 1:6 with lines title 'Net_Force (F_net)'"
+
+    ! For Elastic and Damping Case (Contact Force vs. Time)
+    ! Set up Gnuplot for plotting and saving the output
+    write(20, *) "set title 'Particle Motion: F_contact vs. Time'"
+    write(20, *) "set xlabel 'Time (s)'"
+    write(20, *) "set ylabel 'F_contact (N)'"
+    write(20, *) "set grid"
+
+    ! Save the plot as PNG
+    write(20, *) "set terminal png size 800,600"
+    write(20, *) "set output 'F_contact_vs_Time.png'"
+    write(20, *) "plot 'results_damping_F_contact_vs_Time.txt' using 1:5 with lines title 'Contact_Force (F_contact)'"
+
+
 
     
     close(20)
@@ -176,6 +238,94 @@ module simulation_module
     ! Execute the Gnuplot script
     call execute_command_line("gnuplot plot_commands.gp")
 end subroutine generate_plot
+
+!  ! Subroutine to initialize the 2D simulation
+! subroutine initialize_simulation_2D(x, y, vx, vy, time_array, x0, y0, vx0, vy0, dt, n_points)
+!   implicit none
+!   real, intent(out) :: x(:), y(:), vx(:), vy(:), time_array(:)
+!   real, intent(in) :: x0, y0, vx0, vy0, dt
+!   integer, intent(in) :: n_points
+!   integer :: i
+
+!   ! Initialize arrays
+!   x(1) = x0
+!   y(1) = y0
+!   vx(1) = vx0
+!   vy(1) = vy0
+!   do i = 1, n_points
+!     time_array(i) = (i - 1) * dt
+!   end do
+! end subroutine initialize_simulation_2D
+
+! ! Subroutine to compute the forces in 2D
+! subroutine compute_forces_2D(x, y, vx, vy, m, g, k, c, mu, Fx, Fy, include_damping)
+!   implicit none
+!   real, intent(in) :: x, y, vx, vy, m, g, k, c, mu
+!   logical, intent(in), optional :: include_damping
+!   real, intent(out) :: Fx, Fy
+
+!   real :: delta, Fn, Ft
+
+!   ! Normal force (contact with wall at y=0)
+!   if (y <= 0.0) then
+!     delta = -y
+!     Fn = k * delta
+!     if (present(include_damping) .and. include_damping) then
+!       Fn = Fn - c * vy
+!     end if
+!     ! Friction force
+!     Ft = mu * Fn
+!     Fx = -Ft * sign(1.0, vx)  ! Friction opposes motion in x
+!     Fy = Fn  ! Normal force
+!   else
+!     Fx = 0.0
+!     Fy = -m * g  ! Gravity acts in y direction
+!   end if
+! end subroutine compute_forces_2D
+
+! ! Subroutine to run the 2D simulation
+! subroutine run_simulation_2D(x, y, vx, vy, time_array, Fx_array, Fy_array, m, g, k, c, mu, dt, epsilon, n_points, include_damping)
+!   implicit none
+!   real, intent(inout) :: x(:), y(:), vx(:), vy(:), time_array(:)
+!   real, intent(out) :: Fx_array(:), Fy_array(:)
+!   real, intent(in) :: m, g, k, c, mu, dt, epsilon
+!   logical, intent(in) :: include_damping
+!   integer, intent(in) :: n_points
+!   real :: Fx, Fy, ax, ay
+!   integer :: i
+
+!   do i = 2, n_points
+!     ! Compute forces
+!     call compute_forces_2D(x(i-1), y(i-1), vx(i-1), vy(i-1), m, g, k, c, mu, Fx, Fy, include_damping)
+
+!     ! Store forces
+!     Fx_array(i) = Fx
+!     Fy_array(i) = Fy
+
+!     ! Compute accelerations
+!     ax = Fx / m
+!     ay = Fy / m
+
+!     ! Update velocities
+!     vx(i) = vx(i-1) + ax * dt
+!     vy(i) = vy(i-1) + ay * dt
+
+!     ! Update positions
+!     x(i) = x(i-1) + vx(i) * dt
+!     y(i) = y(i-1) + vy(i) * dt
+
+!     ! Stop if velocity and height are small
+!     if (abs(vy(i)) < epsilon .and. y(i) == 0.0) then
+!       x(i:) = x(i-1)
+!       y(i:) = 0.0
+!       vx(i:) = 0.0
+!       vy(i:) = 0.0
+!       Fx_array(i:) = 0.0
+!       Fy_array(i:) = 0.0
+!       exit
+!     end if
+!   end do
+! end subroutine run_simulation_2D
 
 
 end module simulation_module
