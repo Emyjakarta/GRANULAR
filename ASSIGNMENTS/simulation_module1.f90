@@ -170,41 +170,41 @@ module simulation_module
     ! write(20, *) "set output 'height_vs_time_Elastic.gif'"
     ! write(20, *) "plot 'results_elastic.txt' using 1:2 with lines title 'Height (z)'"
 
-    ! For Elastic and Damping Case (Net Force)
-    ! Set up Gnuplot for plotting and saving the output
-    write(20, *) "set title 'Particle Motion: F_net vs. Height'"
-    write(20, *) "set xlabel 'Height (m)'"
-    write(20, *) "set ylabel 'F_net (N)'"
-    write(20, *) "set grid"
+    ! ! For Elastic and Damping Case (Net Force)
+    ! ! Set up Gnuplot for plotting and saving the output
+    ! write(20, *) "set title 'Particle Motion: F_net vs. Height'"
+    ! write(20, *) "set xlabel 'Height (m)'"
+    ! write(20, *) "set ylabel 'F_net (N)'"
+    ! write(20, *) "set grid"
 
-    ! Save the plot as PNG
-    write(20, *) "set terminal png size 800,600"
-    write(20, *) "set output 'F_net_vs_Height.png'"
-    write(20, *) "plot 'results_damping_F_net.txt' using 2:6 with lines title 'Net_Force (F_net)'"
+    ! ! Save the plot as PNG
+    ! write(20, *) "set terminal png size 800,600"
+    ! write(20, *) "set output 'F_net_vs_Height.png'"
+    ! write(20, *) "plot 'results_damping_F_net.txt' using 2:6 with lines title 'Net_Force (F_net)'"
 
-    ! For Elastic and Damping Case (Contact Force)
-    ! Set up Gnuplot for plotting and saving the output
-    write(20, *) "set title 'Particle Motion: F_contact vs. Height'"
-    write(20, *) "set xlabel 'Height (m)'"
-    write(20, *) "set ylabel 'F_contact (N)'"
-    write(20, *) "set grid"
+    ! ! For Elastic and Damping Case (Contact Force)
+    ! ! Set up Gnuplot for plotting and saving the output
+    ! write(20, *) "set title 'Particle Motion: F_contact vs. Height'"
+    ! write(20, *) "set xlabel 'Height (m)'"
+    ! write(20, *) "set ylabel 'F_contact (N)'"
+    ! write(20, *) "set grid"
 
-    ! Save the plot as PNG
-    write(20, *) "set terminal png size 800,600"
-    write(20, *) "set output 'F_contact_vs_Height.png'"
-    write(20, *) "plot 'results_damping_F_contact.txt' using 2:5 with lines title 'Contact_Force (F_contact)'"
+    ! ! Save the plot as PNG
+    ! write(20, *) "set terminal png size 800,600"
+    ! write(20, *) "set output 'F_contact_vs_Height.png'"
+    ! write(20, *) "plot 'results_damping_F_contact.txt' using 2:5 with lines title 'Contact_Force (F_contact)'"
 
-    ! For Elastic and Damping Case (Gravitational Force)
-    ! Set up Gnuplot for plotting and saving the output
-    write(20, *) "set title 'Particle Motion: F_g vs. Height'"
-    write(20, *) "set xlabel 'Height (m)'"
-    write(20, *) "set ylabel 'F_g (N)'"
-    write(20, *) "set grid"
+    ! ! For Elastic and Damping Case (Gravitational Force)
+    ! ! Set up Gnuplot for plotting and saving the output
+    ! write(20, *) "set title 'Particle Motion: F_g vs. Height'"
+    ! write(20, *) "set xlabel 'Height (m)'"
+    ! write(20, *) "set ylabel 'F_g (N)'"
+    ! write(20, *) "set grid"
 
-    ! Save the plot as PNG
-    write(20, *) "set terminal png size 800,600"
-    write(20, *) "set output 'F_g_vs_Height.png'"
-    write(20, *) "plot 'results_damping_F_g.txt' using 2:4 with lines title 'Gravitational_Force (F_g)'"
+    ! ! Save the plot as PNG
+    ! write(20, *) "set terminal png size 800,600"
+    ! write(20, *) "set output 'F_g_vs_Height.png'"
+    ! write(20, *) "plot 'results_damping_F_g.txt' using 2:4 with lines title 'Gravitational_Force (F_g)'"
 
     ! For Elastic and Damping Case (Net Force vs. Time)
     ! Set up Gnuplot for plotting and saving the output
@@ -229,6 +229,34 @@ module simulation_module
     write(20, *) "set terminal png size 800,600"
     write(20, *) "set output 'F_contact_vs_Time.png'"
     write(20, *) "plot 'results_damping_F_contact_vs_Time.txt' using 1:5 with lines title 'Contact_Force (F_contact)'"
+
+    ! Y vs X Plot
+    write(20, *) "set title '2D Particle Trajectory: Y vs X'"
+    write(20, *) "set xlabel 'X (m)'"
+    write(20, *) "set ylabel 'Y (m)'"
+    write(20, *) "set grid"
+    write(20, *) "set terminal png size 800,600"
+    write(20, *) "set output 'trajectory_2D.png'"
+    write(20, *) "plot 'results_2D.txt' using 2:3 with lines title 'Trajectory'"
+
+    ! Velocity Components vs Time Plot
+    write(20, *) "set title 'Velocity Components vs Time'"
+    write(20, *) "set xlabel 'Time (s)'"
+    write(20, *) "set ylabel 'Velocity (m/s)'"
+    write(20, *) "set grid"
+    write(20, *) "set terminal png size 800,600"
+    write(20, *) "set output 'velocity_vs_time.png'"
+    write(20, *) "plot 'results_2D.txt' using 1:4 with lines title 'Vx', '' using 1:5 with lines title 'Vy'"
+
+    ! Forces vs Time Plot
+    write(20, *) "set title 'Force Components vs Time'"
+    write(20, *) "set xlabel 'Time (s)'"
+    write(20, *) "set ylabel 'Force (N)'"
+    write(20, *) "set grid"
+    write(20, *) "set terminal png size 800,600"
+    write(20, *) "set output 'forces_vs_time.png'"
+    write(20, *) "plot 'results_2D.txt' using 1:6 with lines title 'Fx', '' using 1:7 with lines title 'Fy'"
+
 
 
 
@@ -326,6 +354,22 @@ subroutine run_simulation_2D(x, y, vx, vy, time_array, Fx_array, Fy_array, m, g,
     end if
   end do
 end subroutine run_simulation_2D
+
+subroutine write_results_2D(x, y, vx, vy, Fx_array, Fy_array, time_array, n_points, filename)
+  implicit none
+  real, intent(in) :: x(:), y(:), vx(:), vy(:), Fx_array(:), Fy_array(:), time_array(:)
+  integer, intent(in) :: n_points
+  character(len=*), intent(in) :: filename
+  integer :: i
+  open(unit=20, file=filename, status="replace")
+  write(20, '(A)') "Time (s), X (m), Y (m), Vx (m/s), Vy (m/s), Fx (N), Fy (N)"
+  do i = 1, n_points
+      write(20, '(F10.3, F10.3, F10.3, F10.3, F10.3, F10.3, F10.3)') &
+          time_array(i), x(i), y(i), vx(i), vy(i), Fx_array(i), Fy_array(i)
+  end do
+  close(20)
+end subroutine write_results_2D
+
 
 
 end module simulation_module

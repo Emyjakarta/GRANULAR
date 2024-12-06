@@ -1,5 +1,5 @@
 program particle_motion
-  use simulation_module, only: initialize_simulation, initialize_simulation_2D, compute_forces, compute_forces_2D, run_simulation, run_simulation_2D, write_results, generate_plot
+  use simulation_module, only: initialize_simulation, initialize_simulation_2D, compute_forces, compute_forces_2D, run_simulation, run_simulation_2D, write_results, write_results_2D, generate_plot
   implicit none
 
   ! Variables for 1D simulation and 2D simulation
@@ -98,8 +98,10 @@ program particle_motion
   include_damping = .true.
   call initialize_simulation_2D(x, y, vx, vy, time_array, 0.0, 1.0, 1.0, 0.0, dt, n_points)
   call run_simulation_2D(x, y, vx, vy, time_array, Fx_array, Fy_array, m, g, k, c, mu, dt, epsilon, n_points, include_damping)
+  call write_results_2D(x, y, vx, vy, time_array, Fx_array, Fy_array, n_points, "results_2D.txt")
+  call generate_plot()  ! Save plot for 2D case
 
-
+  
   ! Deallocate arrays
   deallocate(z, v, time_array, F_g_array, F_contact_array, F_net_array, x, y, vx, vy, Fx_array, Fy_array)
 end program particle_motion
