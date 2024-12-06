@@ -113,9 +113,14 @@ module simulation_module
     integer, intent(in) :: n_points
     character(len=*), intent(in) :: filename
     integer :: i
+    ! Open the file for writing
     open(unit=10, file=filename, status="replace")
     ! write(10, *) "Time (s)", "Height (m)", "Velocity (m/s)", "Gravitational_Force", "Contact_Force", "Net_Force"
-    write(10, '(A)') "Time (s), Height (m), Velocity (m/s), Gravitational Force (N), Contact Force (N), Net Force (N)"
+    
+    ! Write the header line, including "Delta (m)"
+    write(10, '(A)') "Time (s), Height (m), Velocity (m/s), Gravitational Force (N), Contact Force (N), Net Force (N), Delta (m)" 
+    
+    ! Write the data
     do i = 1, n_points
       ! write(10, *) time_array(i), z(i), v(i)
       write(10, '(F10.3, F10.3, F10.3, F10.3, F10.3, F10.3, F10.3)') time_array(i), z(i), v(i), F_g_array(i), F_contact_array(i), F_net_array(i),delta_array(i)

@@ -10,17 +10,17 @@ program particle_motion
   logical :: include_damping
 
   ! Initialize parameters
-  m = 1.0        ! Mass (kg)
+  m = 2.0        ! Mass (kg)
   g = 9.81       ! Gravitational acceleration (m/s^2)
   z0 = 1.0      ! Initial height (m)
   v0 = 0.0       ! Initial velocity (m/s)
-  k = 20000.0     ! Spring constant (N/m)
-  c = 10.0       ! Damping coefficient (Ns/m)
+  k = 20000000.0     ! Spring constant (N/m)
+  c = 0.05       ! Damping coefficient (Ns/m)
   dt = 0.001     ! Time step (s)
-  T = 5.0        ! Total simulation time (s)
+  T = 1.0        ! Total simulation time (s)
   epsilon = 1e-3 ! Stopping threshold
   mu = 0.5       ! Friction coefficient
-  R = 1.0        ! Radius of the Particle (m)
+  R = 0.12        ! Radius of the Particle (m)
 
   ! Compute the number of points
   n_points = int(T / dt) + 1
