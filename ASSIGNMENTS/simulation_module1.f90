@@ -45,14 +45,14 @@ module simulation_module
   end subroutine compute_forces
 
   ! Subroutine to run the simulation
-  subroutine run_simulation(z, v, time_array, F_g_array, F_contact_array, F_net_array, m, g, k, c, dt, epsilon, n_points, include_damping)
+  subroutine run_simulation(z, v, time_array, F_g_array, F_contact_array, F_net_array, m, g, k, c, dt, epsilon, n_points, include_damping, delta_array, R)
     implicit none
     real, intent(inout) :: z(:), v(:), time_array(:)
-    real, intent(out) :: F_g_array(:), F_contact_array(:), F_net_array(:)
-    real, intent(in) :: m, g, k, c, dt, epsilon
+    real, intent(out) :: F_g_array(:), F_contact_array(:), F_net_array(:), delta_array(:)
+    real, intent(in) :: m, g, k, c, dt, epsilon, R
     logical, intent(in) :: include_damping
     integer, intent(in) :: n_points
-    real :: F_g, F_contact, F_net, a
+    real :: F_g, F_contact, F_net, a, delta
     integer :: i
 
     do i = 2, n_points
@@ -72,6 +72,24 @@ module simulation_module
       v(i) = v(i - 1) + a * dt
       z(i) = z(i - 1) + v(i) * dt
 
+      ! Clamp z to non-negative values
+      if (z(i) < 0.0) then
+        z(i) = 0.0
+        v(i) = -v(i) * 0.5  ! Reverse and dampen velocity to simulate impact
+      end if
+
+      ! Compute delta based on the specified conditions
+      if (z(i) >= R) then
+        delta = 0.0
+      else if (z(i) > 0.0 .and. z(i) <= R) then
+        delta = R - z(i)
+      else
+        delta = 0.0  ! This case should not occur after clamping
+        ! print *, "Error: z is less than 0. This indicates a bug in the simulation."
+        ! stop
+      end if
+      delta_array(i) = delta
+
       ! Stop if velocity and height are small
       if (abs(v(i)) < epsilon .and. z(i) == 0.0) then
         z(i:) = 0.0
@@ -79,6 +97,7 @@ module simulation_module
         F_g_array(i:) = 0.0
         F_contact_array(i:) = 0.0
         F_net_array(i:) = 0.0
+        delta_array(i:) = 0.0
         exit
       end if
     end do
@@ -86,10 +105,11 @@ module simulation_module
 
   ! Subroutine to write results to a file
   ! subroutine write_results(z, v, time_array, n_points)
-  subroutine write_results(z, v, time_array, F_g_array, F_contact_array, F_net_array, n_points, filename)
+  subroutine write_results(z, v, time_array, F_g_array, F_contact_array, F_net_array, delta_array, n_points, filename)
     implicit none
     real, intent(in) :: z(:), v(:), time_array(:)
     real, intent(in) :: F_g_array(:), F_contact_array(:), F_net_array(:)
+    real, intent(in) :: delta_array(:)
     integer, intent(in) :: n_points
     character(len=*), intent(in) :: filename
     integer :: i
@@ -98,7 +118,7 @@ module simulation_module
     write(10, '(A)') "Time (s), Height (m), Velocity (m/s), Gravitational Force (N), Contact Force (N), Net Force (N)"
     do i = 1, n_points
       ! write(10, *) time_array(i), z(i), v(i)
-      write(10, '(F10.3, F10.3, F10.3, F10.3, F10.3, F10.3)') time_array(i), z(i), v(i), F_g_array(i), F_contact_array(i), F_net_array(i)
+      write(10, '(F10.3, F10.3, F10.3, F10.3, F10.3, F10.3, F10.3)') time_array(i), z(i), v(i), F_g_array(i), F_contact_array(i), F_net_array(i),delta_array(i)
     end do
     close(10)
   end subroutine write_results
@@ -312,10 +332,10 @@ subroutine compute_forces_2D(x, y, vx, vy, m, g, k, c, mu, Fx, Fy, include_dampi
 end subroutine compute_forces_2D
 
 ! Subroutine to run the 2D simulation
-subroutine run_simulation_2D(x, y, vx, vy, time_array, Fx_array, Fy_array, m, g, k, c, mu, dt, epsilon, n_points, include_damping)
+subroutine run_simulation_2D(x, y, vx, vy, time_array, Fx_array, Fy_array, m, g, k, c, mu, dt, epsilon, n_points, include_damping, delta_array)
   implicit none
   real, intent(inout) :: x(:), y(:), vx(:), vy(:), time_array(:)
-  real, intent(out) :: Fx_array(:), Fy_array(:)
+  real, intent(out) :: Fx_array(:), Fy_array(:), delta_array(:)
   real, intent(in) :: m, g, k, c, mu, dt, epsilon
   logical, intent(in) :: include_damping
   integer, intent(in) :: n_points
@@ -350,22 +370,27 @@ subroutine run_simulation_2D(x, y, vx, vy, time_array, Fx_array, Fy_array, m, g,
       vy(i:) = 0.0
       Fx_array(i:) = 0.0
       Fy_array(i:) = 0.0
+      delta_array(i:) = 0.0
       exit
     end if
   end do
 end subroutine run_simulation_2D
 
-subroutine write_results_2D(x, y, vx, vy, Fx_array, Fy_array, time_array, n_points, filename)
+subroutine write_results_2D(x, y, vx, vy, Fx_array, Fy_array, delta_array, time_array, n_points, filename)
   implicit none
-  real, intent(in) :: x(:), y(:), vx(:), vy(:), Fx_array(:), Fy_array(:), time_array(:)
+  real, intent(in) :: x(:), y(:), vx(:), vy(:), Fx_array(:), Fy_array(:), time_array(:), delta_array(:)
   integer, intent(in) :: n_points
   character(len=*), intent(in) :: filename
   integer :: i
+
+  ! Open the file for writing
   open(unit=20, file=filename, status="replace")
-  write(20, '(A)') "Time (s), X (m), Y (m), Vx (m/s), Vy (m/s), Fx (N), Fy (N)"
+  ! Write the header line
+  write(20, '(A)') "Time (s), X (m), Y (m), Vx (m/s), Vy (m/s), Fx (N), Fy (N), Delta (m)"
+  ! Write the data
   do i = 1, n_points
-      write(20, '(F10.3, F10.3, F10.3, F10.3, F10.3, F10.3, F10.3)') &
-          time_array(i), x(i), y(i), vx(i), vy(i), Fx_array(i), Fy_array(i)
+      write(20, '(F10.3, F10.3, F10.3, F10.3, F10.3, F10.3, F10.3, F10.3)') &
+          time_array(i), x(i), y(i), vx(i), vy(i), Fx_array(i), Fy_array(i), delta_array(i) 
   end do
   close(20)
 end subroutine write_results_2D
