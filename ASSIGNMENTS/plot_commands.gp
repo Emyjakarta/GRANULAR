@@ -3,8 +3,15 @@
  set ylabel 'Height (m)'
  set grid
  set terminal png size 800,600
- set output 'height_vs_time_Elastic_And_Damping.png'
+ set output 'height_vs_time_Damping.png'
  plot 'results_damping.txt' using 1:2 with lines title 'Height (z)'
+ set title 'Delta vs Time (1D Damped Case)'
+ set xlabel 'Time (s)'
+ set ylabel 'Delta (m)'
+ set grid
+ set terminal png size 800,600
+ set output 'delta_vs_time_1D_Damped.png'
+ plot 'results_damping.txt' using 1:7 with lines title '1D Damped Delta'
  set title 'Particle Motion: Height vs. Time'
  set xlabel 'Time (s)'
  set ylabel 'Height (m)'
@@ -12,6 +19,13 @@
  set terminal png size 800,600
  set output 'height_vs_time_Elastic.png'
  plot 'results_elastic.txt' using 1:2 with lines title 'Height (z)'
+ set title 'Delta vs Time (1D Elastic Case)'
+ set xlabel 'Time (s)'
+ set ylabel 'Delta (m)'
+ set grid
+ set terminal png size 800,600
+ set output 'delta_vs_time_1D_Elastic.png'
+ plot 'results_elastic.txt' using 1:7 with lines title '1D Elastic Delta'
  set title 'Particle Motion: F_net vs. Time'
  set xlabel 'Time (s)'
  set ylabel 'F_net (N)'
@@ -26,6 +40,13 @@
  set terminal png size 800,600
  set output 'F_contact_vs_Time.png'
  plot 'results_damping_F_contact_vs_Time.txt' using 1:5 with lines title 'Contact_Force (F_contact)'
+ set title 'Delta vs Time (2D Case)'
+ set xlabel 'Time (s)'
+ set ylabel 'Delta (m)'
+ set grid
+ set terminal png size 800,600
+ set output 'delta_vs_time_2D.png'
+ plot 'results_2D.txt' using 1:8 with lines title '2D Delta'
  set title '2D Particle Trajectory: Y vs X'
  set xlabel 'X (m)'
  set ylabel 'Y (m)'

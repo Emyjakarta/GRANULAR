@@ -14,7 +14,7 @@ program particle_motion
   g = 9.81       ! Gravitational acceleration (m/s^2)
   z0 = 1.0      ! Initial height (m)
   v0 = 0.0       ! Initial velocity (m/s)
-  k = 1000.0     ! Spring constant (N/m)
+  k = 20000.0     ! Spring constant (N/m)
   c = 10.0       ! Damping coefficient (Ns/m)
   dt = 0.001     ! Time step (s)
   T = 5.0        ! Total simulation time (s)
@@ -52,42 +52,42 @@ program particle_motion
   call write_results(z, v, time_array, F_g_array, F_contact_array, F_net_array, delta_array, n_points, "results_elastic.txt")
   call generate_plot()  ! Save plot for elastic case
 
-  ! --- Case 2: 1D Elastic + Damping ---
+  ! --- Case 2: 1D Damping ---
   include_damping = .true.  ! Include damping
   call initialize_simulation(z, v, time_array, z0, v0, dt, n_points)
   call run_simulation(z, v, time_array, F_g_array, F_contact_array, F_net_array, m, g, k, c, dt, epsilon, n_points, include_damping, delta_array, R)
   call write_results(z, v, time_array, F_g_array, F_contact_array, F_net_array, delta_array, n_points, "results_damping.txt")
   call generate_plot()  ! Save plot for elastic + damping case
 
-  ! --- Case 2: 1D Elastic + Damping (Net_Force) ---
+  ! --- Case 2: 1D Damping (Net_Force) ---
   include_damping = .true.  ! Include damping
   call initialize_simulation(z, v, time_array, z0, v0, dt, n_points)
   call run_simulation(z, v, time_array, F_g_array, F_contact_array, F_net_array, m, g, k, c, dt, epsilon, n_points, include_damping, delta_array, R) 
   call write_results(z, v, time_array, F_g_array, F_contact_array, F_net_array, delta_array, n_points, "results_damping_F_net.txt")
   call generate_plot()  ! Save plot for elastic + damping case
 
-  ! --- Case 2: 1D Elastic + Damping (Net_Force_vs_Time) ---
+  ! --- Case 2: 1D Damping (Net_Force_vs_Time) ---
   include_damping = .true.  ! Include damping
   call initialize_simulation(z, v, time_array, z0, v0, dt, n_points)
   call run_simulation(z, v, time_array, F_g_array, F_contact_array, F_net_array, m, g, k, c, dt, epsilon, n_points, include_damping, delta_array, R)
   call write_results(z, v, time_array, F_g_array, F_contact_array, F_net_array, delta_array, n_points, "results_damping_F_net_vs_Time.txt")
   call generate_plot()  ! Save plot for elastic + damping case
 
-  ! --- Case 2: 1D Elastic + Damping (Contact_Force) ---
+  ! --- Case 2: 1D Damping (Contact_Force) ---
   include_damping = .true.  ! Include damping
   call initialize_simulation(z, v, time_array, z0, v0, dt, n_points)
   call run_simulation(z, v, time_array, F_g_array, F_contact_array, F_net_array, m, g, k, c, dt, epsilon, n_points, include_damping, delta_array, R)
   call write_results(z, v, time_array, F_g_array, F_contact_array, F_net_array, delta_array, n_points, "results_damping_F_contact.txt")
   call generate_plot()  ! Save plot for elastic + damping case
 
-  ! --- Case 2: 1D Elastic + Damping (Contact_Force_vs_Time) ---
+  ! --- Case 2: 1D Damping (Contact_Force_vs_Time) ---
   include_damping = .true.  ! Include damping
   call initialize_simulation(z, v, time_array, z0, v0, dt, n_points)
   call run_simulation(z, v, time_array, F_g_array, F_contact_array, F_net_array, m, g, k, c, dt, epsilon, n_points, include_damping, delta_array, R)
   call write_results(z, v, time_array, F_g_array, F_contact_array, F_net_array, delta_array, n_points, "results_damping_F_contact_vs_Time.txt")
   call generate_plot()  ! Save plot for elastic + damping case
 
-  ! --- Case 2: 1D Elastic + Damping (Gravitational_Force) ---
+  ! --- Case 2: 1D Damping (Gravitational_Force) ---
   include_damping = .true.  ! Include damping
   call initialize_simulation(z, v, time_array, z0, v0, dt, n_points)
   call run_simulation(z, v, time_array, F_g_array, F_contact_array, F_net_array, m, g, k, c, dt, epsilon, n_points, include_damping, delta_array, R)

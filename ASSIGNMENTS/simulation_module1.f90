@@ -141,7 +141,7 @@ module simulation_module
     implicit none
     open(unit=20, file="plot_commands.gp", status="replace")
     
-    ! For Elastic and Damping Case
+    ! For Damping Case 1D
     ! Set up Gnuplot for plotting and saving the output
     write(20, *) "set title 'Particle Motion: Height vs. Time'"
     write(20, *) "set xlabel 'Time (s)'"
@@ -150,8 +150,18 @@ module simulation_module
 
     ! Save the plot as PNG
     write(20, *) "set terminal png size 800,600"
-    write(20, *) "set output 'height_vs_time_Elastic_And_Damping.png'"
+    write(20, *) "set output 'height_vs_time_Damping.png'"
     write(20, *) "plot 'results_damping.txt' using 1:2 with lines title 'Height (z)'"
+
+    ! 1D Damped Case
+    write(20, *) "set title 'Delta vs Time (1D Damped Case)'"
+    write(20, *) "set xlabel 'Time (s)'"
+    write(20, *) "set ylabel 'Delta (m)'"
+    write(20, *) "set grid"
+    write(20, *) "set terminal png size 800,600"
+    write(20, *) "set output 'delta_vs_time_1D_Damped.png'"
+    write(20, *) "plot 'results_damping.txt' using 1:7 with lines title '1D Damped Delta'"
+
 
     ! ! Save the plot as JPEG
     ! write(20, *) "set terminal jpeg size 800,600"
@@ -168,7 +178,7 @@ module simulation_module
     ! write(20, *) "unset output"
     ! write(20, *) "plot 'results.txt' using 1:2 with lines title 'Height (z)'"
 
-    ! For Elastic with No Damping Case
+    ! For Elastic with No Damping Case 1D
     ! Set up Gnuplot for plotting and saving the output
     write(20, *) "set title 'Particle Motion: Height vs. Time'"
     write(20, *) "set xlabel 'Time (s)'"
@@ -179,6 +189,15 @@ module simulation_module
     write(20, *) "set terminal png size 800,600"
     write(20, *) "set output 'height_vs_time_Elastic.png'"
     write(20, *) "plot 'results_elastic.txt' using 1:2 with lines title 'Height (z)'"
+
+    ! 1D Elastic Case
+    write(20, *) "set title 'Delta vs Time (1D Elastic Case)'"
+    write(20, *) "set xlabel 'Time (s)'"
+    write(20, *) "set ylabel 'Delta (m)'"
+    write(20, *) "set grid"
+    write(20, *) "set terminal png size 800,600"
+    write(20, *) "set output 'delta_vs_time_1D_Elastic.png'"
+    write(20, *) "plot 'results_elastic.txt' using 1:7 with lines title '1D Elastic Delta'"
 
     ! ! Save the plot as JPEG
     ! write(20, *) "set terminal jpeg size 800,600"
@@ -226,7 +245,7 @@ module simulation_module
     ! write(20, *) "set output 'F_g_vs_Height.png'"
     ! write(20, *) "plot 'results_damping_F_g.txt' using 2:4 with lines title 'Gravitational_Force (F_g)'"
 
-    ! For Elastic and Damping Case (Net Force vs. Time)
+    ! For Damping Case (Net Force vs. Time) 1D
     ! Set up Gnuplot for plotting and saving the output
     write(20, *) "set title 'Particle Motion: F_net vs. Time'"
     write(20, *) "set xlabel 'Time (s)'"
@@ -238,7 +257,7 @@ module simulation_module
     write(20, *) "set output 'F_net_vs_Time.png'"
     write(20, *) "plot 'results_damping_F_net_vs_Time.txt' using 1:6 with lines title 'Net_Force (F_net)'"
 
-    ! For Elastic and Damping Case (Contact Force vs. Time)
+    ! For Damping Case (Contact Force vs. Time) 1D
     ! Set up Gnuplot for plotting and saving the output
     write(20, *) "set title 'Particle Motion: F_contact vs. Time'"
     write(20, *) "set xlabel 'Time (s)'"
@@ -250,7 +269,16 @@ module simulation_module
     write(20, *) "set output 'F_contact_vs_Time.png'"
     write(20, *) "plot 'results_damping_F_contact_vs_Time.txt' using 1:5 with lines title 'Contact_Force (F_contact)'"
 
-    ! Y vs X Plot
+    ! 2D Case
+    write(20, *) "set title 'Delta vs Time (2D Case)'"
+    write(20, *) "set xlabel 'Time (s)'"
+    write(20, *) "set ylabel 'Delta (m)'"
+    write(20, *) "set grid"
+    write(20, *) "set terminal png size 800,600"
+    write(20, *) "set output 'delta_vs_time_2D.png'"
+    write(20, *) "plot 'results_2D.txt' using 1:8 with lines title '2D Delta'"
+
+    ! Y vs X Plot 2D
     write(20, *) "set title '2D Particle Trajectory: Y vs X'"
     write(20, *) "set xlabel 'X (m)'"
     write(20, *) "set ylabel 'Y (m)'"
@@ -259,7 +287,7 @@ module simulation_module
     write(20, *) "set output 'trajectory_2D.png'"
     write(20, *) "plot 'results_2D.txt' using 2:3 with lines title 'Trajectory'"
 
-    ! Velocity Components vs Time Plot
+    ! Velocity Components vs Time Plot 2D
     write(20, *) "set title 'Velocity Components vs Time'"
     write(20, *) "set xlabel 'Time (s)'"
     write(20, *) "set ylabel 'Velocity (m/s)'"
@@ -268,7 +296,7 @@ module simulation_module
     write(20, *) "set output 'velocity_vs_time.png'"
     write(20, *) "plot 'results_2D.txt' using 1:4 with lines title 'Vx', '' using 1:5 with lines title 'Vy'"
 
-    ! Forces vs Time Plot
+    ! Forces vs Time Plot 2D
     write(20, *) "set title 'Force Components vs Time'"
     write(20, *) "set xlabel 'Time (s)'"
     write(20, *) "set ylabel 'Force (N)'"
