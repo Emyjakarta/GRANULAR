@@ -35,7 +35,6 @@ module simulation_module
       else
         F_contact = -k * z ! Elastic force only
       end if
-      ! F_contact = -k * z - c * v
     else
       F_contact = 0.0
     end if
@@ -45,15 +44,19 @@ module simulation_module
   end subroutine compute_forces
 
   ! Subroutine to run the simulation
-  subroutine run_simulation(z, v, time_array, F_g_array, F_contact_array, F_net_array, m, g, k, c, dt, epsilon, n_points, include_damping, delta_array, R)
+  subroutine run_simulation(z, v, time_array, F_g_array, F_contact_array, F_net_array, m, g, k, c, dt, epsilon, n_points, include_damping, delta_array, R, energy_array)  
     implicit none
-    real, intent(inout) :: z(:), v(:), time_array(:)
+    real, intent(inout) :: z(:), v(:), time_array(:), energy_array(:)
     real, intent(out) :: F_g_array(:), F_contact_array(:), F_net_array(:), delta_array(:)
     real, intent(in) :: m, g, k, c, dt, epsilon, R
     logical, intent(in) :: include_damping
     integer, intent(in) :: n_points
-    real :: F_g, F_contact, F_net, a, delta
+    real :: F_g, F_contact, F_net, a, delta, initial_energy, current_energy ! energy_loss_fraction
     integer :: i
+
+    ! Initialize energy calculations
+    initial_energy = 0.5 * m * v(1)**2 + m * g * z(1) ! Initial total energy
+    energy_array(1) = initial_energy
 
     do i = 2, n_points
       ! Compute forces
@@ -68,6 +71,13 @@ module simulation_module
       ! Compute acceleration
       a = F_net / m
 
+      ! Compute current energy and energy loss before updating velocity and position
+      ! current_energy = 0.5 * m * v(i)**2 + m * g * z(i)
+      ! energy_loss_fraction = 0.0 
+      ! energy_loss_fraction = (initial_energy - current_energy) / initial_energy
+      ! print *, "Energy loss fraction at beginning before updating velocity and position: ", energy_loss_fraction
+
+
       ! Update velocity and position
       v(i) = v(i - 1) + a * dt
       z(i) = z(i - 1) + v(i) * dt
@@ -81,14 +91,21 @@ module simulation_module
       ! Compute delta based on the specified conditions
       if (z(i) >= R) then
         delta = 0.0
-      else if (z(i) > 0.0 .and. z(i) <= R) then
-        delta = R - z(i)
       else
-        delta = 0.0  ! This case should not occur after clamping
+        delta = max(0.0, R - z(i))
+      ! else if (z(i) > 0.0 .and. z(i) <= R) then
+      !   delta = R - z(i)
+      ! else
+      !   delta = 0.0  ! This case should not occur after clamping
         ! print *, "Error: z is less than 0. This indicates a bug in the simulation."
         ! stop
       end if
       delta_array(i) = delta
+
+      ! Compute current energy after updating velocity and position
+      current_energy = 0.5 * m * v(i)**2 + m * g * z(i)
+      energy_array(i) = current_energy
+      ! energy_loss_fraction = (initial_energy - current_energy) / initial_energy
 
       ! Stop if velocity and height are small
       if (abs(v(i)) < epsilon .and. z(i) == 0.0) then
@@ -98,49 +115,50 @@ module simulation_module
         F_contact_array(i:) = 0.0
         F_net_array(i:) = 0.0
         delta_array(i:) = 0.0
+        print *, "Energy loss fraction at termination 1D: ", (initial_energy - current_energy) / initial_energy
         exit
       end if
     end do
   end subroutine run_simulation
 
   ! Subroutine to write results to a file
-  ! subroutine write_results(z, v, time_array, n_points)
-  subroutine write_results(z, v, time_array, F_g_array, F_contact_array, F_net_array, delta_array, n_points, filename)
+  subroutine write_results(z, v, time_array, F_g_array, F_contact_array, F_net_array, delta_array, n_points, filename, energy_array)  
     implicit none
     real, intent(in) :: z(:), v(:), time_array(:)
     real, intent(in) :: F_g_array(:), F_contact_array(:), F_net_array(:)
-    real, intent(in) :: delta_array(:)
+    real, intent(in) :: delta_array(:), energy_array(:)
     integer, intent(in) :: n_points
     character(len=*), intent(in) :: filename
-    integer :: i
+    integer :: i, j, block_size
+    real :: avg_time, avg_z, avg_v, avg_Fg, avg_Fcontact, avg_Fnet, avg_delta, avg_energy
+
+    block_size = 100
+
     ! Open the file for writing
     open(unit=10, file=filename, status="replace")
-    ! write(10, *) "Time (s)", "Height (m)", "Velocity (m/s)", "Gravitational_Force", "Contact_Force", "Net_Force"
     
     ! Write the header line, including "Delta (m)"
-    write(10, '(A)') "Time (s), Height (m), Velocity (m/s), Gravitational Force (N), Contact Force (N), Net Force (N), Delta (m)" 
+    write(10, '(A)') "Time (s), Height (m), Velocity (m/s), Gravitational Force (N), Contact Force (N), Net Force (N), Delta (m), Energy (J)" 
     
-    ! Write the data
-    do i = 1, n_points
-      ! write(10, *) time_array(i), z(i), v(i)
-      write(10, '(F10.3, F10.3, F10.3, F10.3, F10.3, F10.3, F10.3)') time_array(i), z(i), v(i), F_g_array(i), F_contact_array(i), F_net_array(i),delta_array(i)
+    ! Write every 100th term or block average
+    do i = 1, n_points, block_size
+      if (i + block_size - 1 <= n_points) then
+        ! Calculate averages for the block
+        avg_time = sum(time_array(i:i + block_size - 1)) / block_size
+        avg_z = sum(z(i:i + block_size - 1)) / block_size
+        avg_v = sum(v(i:i + block_size - 1)) / block_size
+        avg_Fg = sum(F_g_array(i:i + block_size - 1)) / block_size
+        avg_Fcontact = sum(F_contact_array(i:i + block_size - 1)) / block_size
+        avg_Fnet = sum(F_net_array(i:i + block_size - 1)) / block_size
+        avg_delta = sum(delta_array(i:i + block_size - 1)) / block_size
+        avg_energy = sum(energy_array(i:i + block_size - 1)) / block_size
+
+        ! Write averages to the file
+        write(10, '(F10.3, F10.3, F10.3, F10.3, F10.3, F10.3, F10.3, F10.3)') avg_time, avg_z, avg_v, avg_Fg, avg_Fcontact, avg_Fnet, avg_delta, avg_energy 
+      end if
     end do
     close(10)
   end subroutine write_results
-
-  ! Subroutine to generate plot using Gnuplot
-  ! subroutine generate_plot()
-  !   implicit none
-  !   open(unit=20, file="plot_commands.gp", status="replace")
-  !   write(20, *) "set title 'Particle Motion: Height vs. Time'"
-  !   write(20, *) "set xlabel 'Time (s)'"
-  !   write(20, *) "set ylabel 'Height (m)'"
-  !   write(20, *) "set grid"
-  !   write(20, *) "plot 'results.txt' using 1:2 with lines title 'Height (z)'"
-  !   write(20, *) "pause -1 'Press Enter to continue...'"
-  !   close(20)
-  !   call execute_command_line("gnuplot -persist plot_commands.gp")
-  ! end subroutine generate_plot
 
   subroutine generate_plot()
     implicit none
@@ -148,11 +166,10 @@ module simulation_module
     
     ! For Damping Case 1D
     ! Set up Gnuplot for plotting and saving the output
-    write(20, *) "set title 'Particle Motion: Height vs. Time'"
+    write(20, *) "set title 'Particle Motion: Height vs. Time (1D Damping Case)'"
     write(20, *) "set xlabel 'Time (s)'"
     write(20, *) "set ylabel 'Height (m)'"
     write(20, *) "set grid"
-
     ! Save the plot as PNG
     write(20, *) "set terminal png size 800,600"
     write(20, *) "set output 'height_vs_time_Damping.png'"
@@ -167,25 +184,18 @@ module simulation_module
     write(20, *) "set output 'delta_vs_time_1D_Damped.png'"
     write(20, *) "plot 'results_damping.txt' using 1:7 with lines title '1D Damped Delta'"
 
-
-    ! ! Save the plot as JPEG
-    ! write(20, *) "set terminal jpeg size 800,600"
-    ! write(20, *) "set output 'height_vs_time_Elastic_And_Damping.jpeg'"
-    ! write(20, *) "plot 'results_damping.txt' using 1:2 with lines title 'Height (z)'"
-
-    ! ! Save the plot as GIF
-    ! write(20, *) "set terminal gif size 800,600"
-    ! write(20, *) "set output 'height_vs_time_Elastic_And_Damping.gif'"
-    ! write(20, *) "plot 'results_damping.txt' using 1:2 with lines title 'Height (z)'"
-
-    ! ! Display the plot in Gnuplot (optional)
-    ! write(20, *) "set terminal qt"
-    ! write(20, *) "unset output"
-    ! write(20, *) "plot 'results.txt' using 1:2 with lines title 'Height (z)'"
+    ! For Damping Case (Energy vs. Time) 1D
+    write(20, *) "set title '1D Energy vs Time (Damping)'"
+    write(20, *) "set xlabel 'Time (s)'"
+    write(20, *) "set ylabel 'Energy (J)'"
+    write(20, *) "set grid"
+    write(20, *) "set terminal png size 800,600"
+    write(20, *) "set output 'energy_vs_time_1D_damping.png'"
+    write(20, *) "plot 'results_damping.txt' using 1:8 with lines title '1D Damping Energy'"
 
     ! For Elastic with No Damping Case 1D
     ! Set up Gnuplot for plotting and saving the output
-    write(20, *) "set title 'Particle Motion: Height vs. Time'"
+    write(20, *) "set title 'Particle Motion: Height vs. Time (1D Elastic Case)'"
     write(20, *) "set xlabel 'Time (s)'"
     write(20, *) "set ylabel 'Height (m)'"
     write(20, *) "set grid"
@@ -204,75 +214,89 @@ module simulation_module
     write(20, *) "set output 'delta_vs_time_1D_Elastic.png'"
     write(20, *) "plot 'results_elastic.txt' using 1:7 with lines title '1D Elastic Delta'"
 
-    ! ! Save the plot as JPEG
-    ! write(20, *) "set terminal jpeg size 800,600"
-    ! write(20, *) "set output 'height_vs_time_Elastic.jpeg'"
-    ! write(20, *) "plot 'results_elastic.txt' using 1:2 with lines title 'Height (z)'"
-
-    ! ! Save the plot as GIF
-    ! write(20, *) "set terminal gif size 800,600"
-    ! write(20, *) "set output 'height_vs_time_Elastic.gif'"
-    ! write(20, *) "plot 'results_elastic.txt' using 1:2 with lines title 'Height (z)'"
-
-    ! ! For Elastic and Damping Case (Net Force)
-    ! ! Set up Gnuplot for plotting and saving the output
-    ! write(20, *) "set title 'Particle Motion: F_net vs. Height'"
-    ! write(20, *) "set xlabel 'Height (m)'"
-    ! write(20, *) "set ylabel 'F_net (N)'"
-    ! write(20, *) "set grid"
-
-    ! ! Save the plot as PNG
-    ! write(20, *) "set terminal png size 800,600"
-    ! write(20, *) "set output 'F_net_vs_Height.png'"
-    ! write(20, *) "plot 'results_damping_F_net.txt' using 2:6 with lines title 'Net_Force (F_net)'"
-
-    ! ! For Elastic and Damping Case (Contact Force)
-    ! ! Set up Gnuplot for plotting and saving the output
-    ! write(20, *) "set title 'Particle Motion: F_contact vs. Height'"
-    ! write(20, *) "set xlabel 'Height (m)'"
-    ! write(20, *) "set ylabel 'F_contact (N)'"
-    ! write(20, *) "set grid"
-
-    ! ! Save the plot as PNG
-    ! write(20, *) "set terminal png size 800,600"
-    ! write(20, *) "set output 'F_contact_vs_Height.png'"
-    ! write(20, *) "plot 'results_damping_F_contact.txt' using 2:5 with lines title 'Contact_Force (F_contact)'"
-
-    ! ! For Elastic and Damping Case (Gravitational Force)
-    ! ! Set up Gnuplot for plotting and saving the output
-    ! write(20, *) "set title 'Particle Motion: F_g vs. Height'"
-    ! write(20, *) "set xlabel 'Height (m)'"
-    ! write(20, *) "set ylabel 'F_g (N)'"
-    ! write(20, *) "set grid"
-
-    ! ! Save the plot as PNG
-    ! write(20, *) "set terminal png size 800,600"
-    ! write(20, *) "set output 'F_g_vs_Height.png'"
-    ! write(20, *) "plot 'results_damping_F_g.txt' using 2:4 with lines title 'Gravitational_Force (F_g)'"
-
-    ! For Damping Case (Net Force vs. Time) 1D
+    ! For Elastic Case (Net Force vs. Time) 1D
     ! Set up Gnuplot for plotting and saving the output
-    write(20, *) "set title 'Particle Motion: F_net vs. Time'"
+    write(20, *) "set title 'Particle Motion: F_net vs. Time (1D Elastic Case)'"
     write(20, *) "set xlabel 'Time (s)'"
     write(20, *) "set ylabel 'F_net (N)'"
     write(20, *) "set grid"
 
     ! Save the plot as PNG
     write(20, *) "set terminal png size 800,600"
-    write(20, *) "set output 'F_net_vs_Time.png'"
-    write(20, *) "plot 'results_damping_F_net_vs_Time.txt' using 1:6 with lines title 'Net_Force (F_net)'"
+    write(20, *) "set output 'F_net_vs_Time_elastic.png'"
+    write(20, *) "plot 'results_elastic.txt' using 1:6 with lines title 'Net_Force Elastic (F_net)'"
 
-    ! For Damping Case (Contact Force vs. Time) 1D
+    ! For Elastic Case (Contact Force vs. Time) 1D
     ! Set up Gnuplot for plotting and saving the output
-    write(20, *) "set title 'Particle Motion: F_contact vs. Time'"
+    write(20, *) "set title 'Particle Motion: F_contact vs. Time (1D Elastic Case)'"
     write(20, *) "set xlabel 'Time (s)'"
     write(20, *) "set ylabel 'F_contact (N)'"
     write(20, *) "set grid"
 
     ! Save the plot as PNG
     write(20, *) "set terminal png size 800,600"
-    write(20, *) "set output 'F_contact_vs_Time.png'"
-    write(20, *) "plot 'results_damping_F_contact_vs_Time.txt' using 1:5 with lines title 'Contact_Force (F_contact)'"
+    write(20, *) "set output 'F_contact_vs_Time_elastic.png'"
+    write(20, *) "plot 'results_elastic.txt' using 1:5 with lines title 'Contact_Force Elastic (F_contact)'"
+
+    ! For 1D Elastic Case: Force vs. Delta
+    write(20, *) "set title 'Force vs Delta (1D Elastic Case)'"
+    write(20, *) "set xlabel 'Delta (m)'"
+    write(20, *) "set ylabel 'Contact Force (N)'"
+    write(20, *) "set grid"
+    write(20, *) "set terminal png size 800,600"
+    write(20, *) "set output 'force_vs_delta_1D_Elastic.png'"
+    write(20, *) "plot 'results_elastic.txt' using 7:6 with lines title '1D Elastic Force vs Delta'"
+
+    ! Plot velocity vs time for 1D cases
+    write(20, *) "set title '1D Velocity vs Time (Elastic and Damped)'"
+    write(20, *) "set xlabel 'Time (s)'"
+    write(20, *) "set ylabel 'Velocity (m/s)'"
+    write(20, *) "set grid"
+    write(20, *) "set terminal png size 800,600"
+    write(20, *) "set output 'velocity_vs_time_1D.png'"
+    write(20, *) "plot 'results_elastic.txt' using 1:3 with lines title '1D Elastic Velocity', 'results_damping.txt' using 1:3 with lines title '1D Damped Velocity'"
+
+    ! For Elastic Case (Energy vs. Time) 1D
+    write(20, *) "set title '1D Energy vs Time (Elastic)'"
+    write(20, *) "set xlabel 'Time (s)'"
+    write(20, *) "set ylabel 'Energy (J)'"
+    write(20, *) "set grid"
+    write(20, *) "set terminal png size 800,600"
+    write(20, *) "set output 'energy_vs_time_1D_elastic.png'"
+    write(20, *) "plot 'results_elastic.txt' using 1:8 with lines title '1D Elastic Energy'"
+
+    ! For Damping Case (Net Force vs. Time) 1D
+    ! Set up Gnuplot for plotting and saving the output
+    write(20, *) "set title 'Particle Motion: F_net vs. Time (1D Damping Case)'"
+    write(20, *) "set xlabel 'Time (s)'"
+    write(20, *) "set ylabel 'F_net (N)'"
+    write(20, *) "set grid"
+
+    ! Save the plot as PNG
+    write(20, *) "set terminal png size 800,600"
+    write(20, *) "set output 'F_net_vs_Time_damping.png'"
+    write(20, *) "plot 'results_damping.txt' using 1:6 with lines title 'Net_Force Damping (F_net)'"
+
+    ! For Damping Case (Contact Force vs. Time) 1D
+    ! Set up Gnuplot for plotting and saving the output
+    write(20, *) "set title 'Particle Motion: F_contact vs. Time (1D Damping Case)'"
+    write(20, *) "set xlabel 'Time (s)'"
+    write(20, *) "set ylabel 'F_contact (N)'"
+    write(20, *) "set grid"
+
+    ! Save the plot as PNG
+    write(20, *) "set terminal png size 800,600"
+    write(20, *) "set output 'F_contact_vs_Time_elastic.png'"
+    write(20, *) "plot 'results_damping.txt' using 1:5 with lines title 'Contact_Force Damping (F_contact)'"
+
+    ! For 1D Damping Case: Force vs. Delta
+    write(20, *) "set title 'Force vs Delta (1D Damping Case)'"
+    write(20, *) "set xlabel 'Delta (m)'"
+    write(20, *) "set ylabel 'Contact Force (N)'"
+    write(20, *) "set grid"
+    write(20, *) "set terminal png size 800,600"
+    write(20, *) "set output 'force_vs_delta_1D_Damping.png'"
+    write(20, *) "plot 'results_damping.txt' using 7:6 with lines title '1D Damping Force vs Delta'"
 
     ! 2D Case
     write(20, *) "set title 'Delta vs Time (2D Case)'"
@@ -283,8 +307,9 @@ module simulation_module
     write(20, *) "set output 'delta_vs_time_2D.png'"
     write(20, *) "plot 'results_2D.txt' using 1:8 with lines title '2D Delta'"
 
+    
     ! Y vs X Plot 2D
-    write(20, *) "set title '2D Particle Trajectory: Y vs X'"
+    write(20, *) "set title '2D Particle Trajectory: Y vs X (2D Case)'"
     write(20, *) "set xlabel 'X (m)'"
     write(20, *) "set ylabel 'Y (m)'"
     write(20, *) "set grid"
@@ -293,7 +318,7 @@ module simulation_module
     write(20, *) "plot 'results_2D.txt' using 2:3 with lines title 'Trajectory'"
 
     ! Velocity Components vs Time Plot 2D
-    write(20, *) "set title 'Velocity Components vs Time'"
+    write(20, *) "set title 'Velocity Components vs Time (2D Case)'"
     write(20, *) "set xlabel 'Time (s)'"
     write(20, *) "set ylabel 'Velocity (m/s)'"
     write(20, *) "set grid"
@@ -302,7 +327,7 @@ module simulation_module
     write(20, *) "plot 'results_2D.txt' using 1:4 with lines title 'Vx', '' using 1:5 with lines title 'Vy'"
 
     ! Forces vs Time Plot 2D
-    write(20, *) "set title 'Force Components vs Time'"
+    write(20, *) "set title 'Force Components vs Time (2D Case)'"
     write(20, *) "set xlabel 'Time (s)'"
     write(20, *) "set ylabel 'Force (N)'"
     write(20, *) "set grid"
@@ -310,9 +335,23 @@ module simulation_module
     write(20, *) "set output 'forces_vs_time.png'"
     write(20, *) "plot 'results_2D.txt' using 1:6 with lines title 'Fx', '' using 1:7 with lines title 'Fy'"
 
+    ! For 2D Case: Force vs. Delta
+    write(20, *) "set title 'Force vs Delta (2D Case)'"
+    write(20, *) "set xlabel 'Delta (m)'"
+    write(20, *) "set ylabel 'Contact Force (N)'"
+    write(20, *) "set grid"
+    write(20, *) "set terminal png size 800,600"
+    write(20, *) "set output 'force_vs_delta_2D.png'"
+    write(20, *) "plot 'results_2D.txt' using 8:6 with lines title '2D Force vs Delta'"
 
-
-
+    ! Energy vs Time Plot 2D
+    write(20, *) "set title '2D Energy vs Time'"
+    write(20, *) "set xlabel 'Time (s)'"
+    write(20, *) "set ylabel 'Energy (J)'"
+    write(20, *) "set grid"
+    write(20, *) "set terminal png size 800,600"
+    write(20, *) "set output 'energy_vs_time_2D.png'"
+    write(20, *) "plot 'results_2D.txt' using 1:9 with lines title '2D Energy'"
     
     close(20)
 
@@ -365,15 +404,19 @@ subroutine compute_forces_2D(x, y, vx, vy, m, g, k, c, mu, Fx, Fy, include_dampi
 end subroutine compute_forces_2D
 
 ! Subroutine to run the 2D simulation
-subroutine run_simulation_2D(x, y, vx, vy, time_array, Fx_array, Fy_array, m, g, k, c, mu, dt, epsilon, n_points, include_damping, delta_array)
+subroutine run_simulation_2D(x, y, vx, vy, time_array, Fx_array, Fy_array, m, g, k, c, mu, dt, epsilon, n_points, include_damping, delta_array, energy_array) 
   implicit none
-  real, intent(inout) :: x(:), y(:), vx(:), vy(:), time_array(:)
+  real, intent(inout) :: x(:), y(:), vx(:), vy(:), time_array(:), energy_array(:) 
   real, intent(out) :: Fx_array(:), Fy_array(:), delta_array(:)
   real, intent(in) :: m, g, k, c, mu, dt, epsilon
   logical, intent(in) :: include_damping
   integer, intent(in) :: n_points
-  real :: Fx, Fy, ax, ay
+  real :: Fx, Fy, ax, ay, initial_energy, current_energy ! energy_loss_fraction 
   integer :: i
+
+  ! Initialize energy calculations
+  initial_energy = 0.5 * m * (vx(1)**2 + vy(1)**2) + m * g * y(1) ! Initial total energy
+  energy_array(1) = initial_energy
 
   do i = 2, n_points
     ! Compute forces
@@ -387,6 +430,9 @@ subroutine run_simulation_2D(x, y, vx, vy, time_array, Fx_array, Fy_array, m, g,
     ax = Fx / m
     ay = Fy / m
 
+    ! Compute current energy before updating position
+    current_energy = 0.5 * m * (vx(i - 1)**2 + vy(i - 1)**2) + m * g * max(0.0, y(i - 1))
+
     ! Update velocities
     vx(i) = vx(i-1) + ax * dt
     vy(i) = vy(i-1) + ay * dt
@@ -394,6 +440,13 @@ subroutine run_simulation_2D(x, y, vx, vy, time_array, Fx_array, Fy_array, m, g,
     ! Update positions
     x(i) = x(i-1) + vx(i) * dt
     y(i) = y(i-1) + vy(i) * dt
+
+    ! Compute energy loss fraction
+    ! energy_loss_fraction = (initial_energy - current_energy) / initial_energy
+
+    ! Compute current energy and store it
+    current_energy = 0.5 * m * (vx(i)**2 + vy(i)**2) + m * g * y(i)
+    energy_array(i) = current_energy
 
     ! Stop if velocity and height are small
     if (abs(vy(i)) < epsilon .and. y(i) == 0.0) then
@@ -404,31 +457,45 @@ subroutine run_simulation_2D(x, y, vx, vy, time_array, Fx_array, Fy_array, m, g,
       Fx_array(i:) = 0.0
       Fy_array(i:) = 0.0
       delta_array(i:) = 0.0
+      print *, "Energy loss fraction at termination 2D: ", (initial_energy - current_energy) / initial_energy
       exit
     end if
   end do
 end subroutine run_simulation_2D
 
-subroutine write_results_2D(x, y, vx, vy, Fx_array, Fy_array, delta_array, time_array, n_points, filename)
+subroutine write_results_2D(x, y, vx, vy, Fx_array, Fy_array, delta_array, time_array, n_points, filename, energy_array)
   implicit none
-  real, intent(in) :: x(:), y(:), vx(:), vy(:), Fx_array(:), Fy_array(:), time_array(:), delta_array(:)
+  real, intent(in) :: x(:), y(:), vx(:), vy(:), Fx_array(:), Fy_array(:), time_array(:), delta_array(:), energy_array(:)
   integer, intent(in) :: n_points
   character(len=*), intent(in) :: filename
-  integer :: i
+  integer :: i, j, block_size
+  real :: avg_time, avg_x, avg_y, avg_vx, avg_vy, avg_Fx, avg_Fy, avg_delta, avg_energy
 
+  block_size = 100
+  
   ! Open the file for writing
   open(unit=20, file=filename, status="replace")
   ! Write the header line
-  write(20, '(A)') "Time (s), X (m), Y (m), Vx (m/s), Vy (m/s), Fx (N), Fy (N), Delta (m)"
-  ! Write the data
-  do i = 1, n_points
-      write(20, '(F10.3, F10.3, F10.3, F10.3, F10.3, F10.3, F10.3, F10.3)') &
-          time_array(i), x(i), y(i), vx(i), vy(i), Fx_array(i), Fy_array(i), delta_array(i) 
+  write(20, '(A)') "Time (s), X (m), Y (m), Vx (m/s), Vy (m/s), Fx (N), Fy (N), Delta (m), Energy (J)"
+  ! Write every 100th term or block average
+  do i = 1, n_points, block_size
+    if (i + block_size - 1 <= n_points) then
+      ! Calculate averages for the block
+      avg_time = sum(time_array(i:i + block_size - 1)) / block_size
+      avg_x = sum(x(i:i + block_size - 1)) / block_size
+      avg_y = sum(y(i:i + block_size - 1)) / block_size
+      avg_vx = sum(vx(i:i + block_size - 1)) / block_size
+      avg_vy = sum(vy(i:i + block_size - 1)) / block_size
+      avg_Fx = sum(Fx_array(i:i + block_size - 1)) / block_size
+      avg_Fy = sum(Fy_array(i:i + block_size - 1)) / block_size
+      avg_delta = sum(delta_array(i:i + block_size - 1)) / block_size
+      avg_energy = sum(energy_array(i:i + block_size - 1)) / block_size
+
+      ! Write averages to the file
+      write(20, '(F10.3, F10.3, F10.3, F10.3, F10.3, F10.3, F10.3, F10.3, F10.3)') avg_time, avg_x, avg_y, avg_vx, avg_vy, avg_Fx, avg_Fy, avg_delta, avg_energy  
+    end if
   end do
   close(20)
 end subroutine write_results_2D
 
-
-
 end module simulation_module
-
