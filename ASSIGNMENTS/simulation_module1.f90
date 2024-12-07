@@ -51,7 +51,7 @@ module simulation_module
     real, intent(in) :: m, g, k, c, dt, epsilon, R
     logical, intent(in) :: include_damping
     integer, intent(in) :: n_points
-    real :: F_g, F_contact, F_net, a, delta, initial_energy, current_energy ! energy_loss_fraction
+    real :: F_g, F_contact, F_net, a, delta, initial_energy, current_energy
     integer :: i
 
     ! Initialize energy calculations
@@ -71,42 +71,41 @@ module simulation_module
       ! Compute acceleration
       a = F_net / m
 
-      ! Compute current energy and energy loss before updating velocity and position
-      ! current_energy = 0.5 * m * v(i)**2 + m * g * z(i)
-      ! energy_loss_fraction = 0.0 
-      ! energy_loss_fraction = (initial_energy - current_energy) / initial_energy
-      ! print *, "Energy loss fraction at beginning before updating velocity and position: ", energy_loss_fraction
-
-
       ! Update velocity and position
       v(i) = v(i - 1) + a * dt
       z(i) = z(i - 1) + v(i) * dt
 
-      ! Clamp z to non-negative values
-      if (z(i) < 0.0) then
-        z(i) = 0.0
-        v(i) = -v(i) * 0.5  ! Reverse and dampen velocity to simulate impact
+      ! Compute delta for 1D Elastic Case
+      if (.not. include_damping) then
+        if (z(i) >= R) then
+          delta = 0.0
+        else
+          delta = max(0.0, R - z(i)) ! Based on height difference
+        end if
       end if
 
-      ! Compute delta based on the specified conditions
-      if (z(i) >= R) then
-        delta = 0.0
-      else
-        delta = max(0.0, R - z(i))
-      ! else if (z(i) > 0.0 .and. z(i) <= R) then
-      !   delta = R - z(i)
-      ! else
-      !   delta = 0.0  ! This case should not occur after clamping
-        ! print *, "Error: z is less than 0. This indicates a bug in the simulation."
-        ! stop
+      ! Compute delta for 1D Damping Case
+      if (include_damping) then
+        delta = abs(z(i)) * 0.5 ! Example: scaled by height
       end if
+
+      ! ! Clamp z to non-negative values
+      ! if (z(i) < 0.0) then
+      !   z(i) = 0.0
+      !   v(i) = -v(i) * 0.5  ! Reverse and dampen velocity to simulate impact
+      ! end if
+
+      ! ! Compute delta based on the specified conditions
+      ! if (z(i) >= R) then
+      !   delta = 0.0
+      ! else
+      !   delta = max(0.0, R - z(i))
+      ! end if
       delta_array(i) = delta
 
       ! Compute current energy after updating velocity and position
       current_energy = 0.5 * m * v(i)**2 + m * g * z(i)
       energy_array(i) = current_energy
-      ! energy_loss_fraction = (initial_energy - current_energy) / initial_energy
-
       ! Stop if velocity and height are small
       if (abs(v(i)) < epsilon .and. z(i) == 0.0) then
         z(i:) = 0.0
@@ -115,7 +114,6 @@ module simulation_module
         F_contact_array(i:) = 0.0
         F_net_array(i:) = 0.0
         delta_array(i:) = 0.0
-        print *, "Energy loss fraction at termination 1D: ", (initial_energy - current_energy) / initial_energy
         exit
       end if
     end do
@@ -338,11 +336,11 @@ module simulation_module
     ! For 2D Case: Force vs. Delta
     write(20, *) "set title 'Force vs Delta (2D Case)'"
     write(20, *) "set xlabel 'Delta (m)'"
-    write(20, *) "set ylabel 'Contact Force (N)'"
+    write(20, *) "set ylabel 'Force (N)'"
     write(20, *) "set grid"
     write(20, *) "set terminal png size 800,600"
     write(20, *) "set output 'force_vs_delta_2D.png'"
-    write(20, *) "plot 'results_2D.txt' using 8:6 with lines title '2D Force vs Delta'"
+    write(20, *) "plot 'results_2D.txt' using 8:6 with lines title '2D Force Fx vs Delta', '' using 8:7 with lines title '2D Force Fy vs Delta'"
 
     ! Energy vs Time Plot 2D
     write(20, *) "set title '2D Energy vs Time'"
@@ -411,7 +409,7 @@ subroutine run_simulation_2D(x, y, vx, vy, time_array, Fx_array, Fy_array, m, g,
   real, intent(in) :: m, g, k, c, mu, dt, epsilon
   logical, intent(in) :: include_damping
   integer, intent(in) :: n_points
-  real :: Fx, Fy, ax, ay, initial_energy, current_energy ! energy_loss_fraction 
+  real :: Fx, Fy, ax, ay, initial_energy, current_energy
   integer :: i
 
   ! Initialize energy calculations
@@ -441,8 +439,13 @@ subroutine run_simulation_2D(x, y, vx, vy, time_array, Fx_array, Fy_array, m, g,
     x(i) = x(i-1) + vx(i) * dt
     y(i) = y(i-1) + vy(i) * dt
 
-    ! Compute energy loss fraction
-    ! energy_loss_fraction = (initial_energy - current_energy) / initial_energy
+    ! Calculate delta based on penetration depth 2D case
+    if (y(i) < 0.0) then
+      delta_array(i) = -y(i)  ! Penetration depth (positive value)
+    else
+      delta_array(i) = 0.0    ! No penetration
+    end if
+    ! delta_array(i) = ! max(0.0, -y(i))  ! Penetration depth (positive value)
 
     ! Compute current energy and store it
     current_energy = 0.5 * m * (vx(i)**2 + vy(i)**2) + m * g * y(i)
@@ -457,7 +460,6 @@ subroutine run_simulation_2D(x, y, vx, vy, time_array, Fx_array, Fy_array, m, g,
       Fx_array(i:) = 0.0
       Fy_array(i:) = 0.0
       delta_array(i:) = 0.0
-      print *, "Energy loss fraction at termination 2D: ", (initial_energy - current_energy) / initial_energy
       exit
     end if
   end do

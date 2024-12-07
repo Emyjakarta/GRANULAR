@@ -119,11 +119,11 @@
  plot 'results_2D.txt' using 1:6 with lines title 'Fx', '' using 1:7 with lines title 'Fy'
  set title 'Force vs Delta (2D Case)'
  set xlabel 'Delta (m)'
- set ylabel 'Contact Force (N)'
+ set ylabel 'Force (N)'
  set grid
  set terminal png size 800,600
  set output 'force_vs_delta_2D.png'
- plot 'results_2D.txt' using 8:6 with lines title '2D Force vs Delta'
+ plot 'results_2D.txt' using 8:6 with lines title '2D Force Fx vs Delta', '' using 8:7 with lines title '2D Force Fy vs Delta'
  set title '2D Energy vs Time'
  set xlabel 'Time (s)'
  set ylabel 'Energy (J)'

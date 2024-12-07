@@ -14,7 +14,7 @@ program particle_motion
   g = 9.81       ! Gravitational acceleration (m/s^2)
   z0 = 1.0 !10.0 ! 0.1      ! Initial height (m)
   v0 = 0.0       ! Initial velocity (m/s)
-  k = 700000000 ! 200000 !100.0 !2000000000.0 ! 20000000.0     ! Spring constant (N/m)
+  k = 70000 ! 700000000 ! 200000 !100.0 !2000000000.0 ! 20000000.0     ! Spring constant (N/m)
   ! c_elastic = 0.0 ! 0.05       ! Damping coefficient for elastic case(Ns/m)
   c = 0.05 ! 0.05       ! Damping coefficient for damped case(Ns/m)
   dt = 0.000001 ! 0.00001     ! Time step (s)
