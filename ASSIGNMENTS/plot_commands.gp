@@ -49,7 +49,7 @@
  plot 'results_elastic.txt' using 1:5 with lines title 'Contact_Force Elastic (F_contact)'
  set title 'Force vs Delta (1D Elastic Case)'
  set xlabel 'Delta (m)'
- set ylabel 'Contact Force (N)'
+ set ylabel 'Net Force (N)'
  set grid
  set terminal png size 800,600
  set output 'force_vs_delta_1D_Elastic.png'
@@ -84,7 +84,7 @@
  plot 'results_damping.txt' using 1:5 with lines title 'Contact_Force Damping (F_contact)'
  set title 'Force vs Delta (1D Damping Case)'
  set xlabel 'Delta (m)'
- set ylabel 'Contact Force (N)'
+ set ylabel 'Net Force (N)'
  set grid
  set terminal png size 800,600
  set output 'force_vs_delta_1D_Damping.png'
